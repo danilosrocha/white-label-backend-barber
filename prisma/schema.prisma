@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  name              String
+  email             String
+  password          String
+  address           String?
+  strip_customer_id String?
+  // 
+  created_at        DateTime?     @default(now())
+  updated_at        DateTime?     @default(now())
+  // 
+  subscriptions     Subscription?
+  // 
+  haircuts          Haircut[]
+  // 
+  services          Service[]
+  // 
+  barbers           Barber[]
+  Client            Client[]
+
+  @@map("users")
+}
+
+model Subscription {
+  id         String    @id
+  status     String
+  priceId    String
+  // 
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+  // 
+  user       User      @relation(fields: [user_id], references: [id])
+  user_id    String    @unique
+
+  @@map("subscriptions")
+}
+
+model Haircut {
+  id         String    @id @default(uuid())
+  name       String
+  price      Float
+  status     Boolean   @default(true)
+  time       String    @default("30:00")
+  // 
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+  // 
+  user       User      @relation(fields: [user_id], references: [id])
+  user_id    String
+  // 
+  barber     Barber    @relation(fields: [barber_id], references: [id])
+  barber_id  String
+  // 
+  services   Service[]
+
+  @@map("haircuts")
+}
+
+model Service {
+  id           String    @id @default(uuid())
+  customer     String
+  status       Boolean   @default(true)
+  time         String
+  time_occuped String[]
+  date         String
+  // 
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @default(now())
+  // 
+  haircut      Haircut   @relation(fields: [haircut_id], references: [id])
+  haircut_id   String
+  // 
+  user         User      @relation(fields: [user_id], references: [id])
+  user_id      String
+  // 
+  barber       Barber?   @relation(fields: [barber_id], references: [id])
+  barber_id    String?
+
+  @@map("services")
+}
+
+model Barber {
+  id           String    @id @default(uuid())
+  barber_name  String
+  hair_cuts    Int       @default(0)
+  status       Boolean   @default(true)
+  available_at String[]
+  // 
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @default(now())
+  // 
+  user         User?     @relation(fields: [user_id], references: [id])
+  user_id      String?
+  // 
+  services     Service[]
+  haircuts     Haircut[]
+
+  @@map("barbers")
+}
+
+model Client {
+  id           String    @id @default(uuid())
+  name         String
+  document     String    @unique
+  phone_number String
+  loyalty      Int       @default(0)
+  // 
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @default(now())
+  // 
+  users        User      @relation(fields: [user_id], references: [id])
+  user_id      String
+
+  @@map("clients")
+}
